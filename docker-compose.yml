@@ -1,0 +1,8 @@
+# Docker is only used for Redis. Postgres runs on your own machine.
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: paynest-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped

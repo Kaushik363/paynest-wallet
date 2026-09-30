@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Money is stored in paise (integer) so we never deal with float rounding.
+// 100 paise = Rs 1.
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+
+  wallet   Wallet?
+  sent     Transaction[] @relation("Sender")
+  received Transaction[] @relation("Receiver")
+}
+
+model Wallet {
+  id      Int  @id @default(autoincrement())
+  userId  Int  @unique
+  balance Int  @default(0)
+  user    User @relation(fields: [userId], references: [id])
+}
+
+model Transaction {
+  id         Int      @id @default(autoincrement())
+  type       String // "TOPUP" or "TRANSFER"
+  amount     Int
+  senderId   Int? // empty for top-ups
+  receiverId Int?
+  createdAt  DateTime @default(now())
+
+  sender   User? @relation("Sender", fields: [senderId], references: [id])
+  receiver User? @relation("Receiver", fields: [receiverId], references: [id])
+
+  @@index([senderId])
+  @@index([receiverId])
+}
